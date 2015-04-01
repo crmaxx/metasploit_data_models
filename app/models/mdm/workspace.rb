@@ -23,31 +23,34 @@ class Mdm::Workspace < ActiveRecord::Base
            class_name: 'MetasploitDataModels::AutomaticExploitation:MatchSet',
            inverse_of: :workspace
 
-  has_many :creds, :through => :services, :class_name => 'Mdm::Cred'
-  has_many :events, :class_name => 'Mdm::Event'
-  has_many :hosts, :dependent => :destroy, :class_name => 'Mdm::Host'
-  has_many :listeners, :dependent => :destroy, :class_name => 'Mdm::Listener'
-  has_many :notes, :class_name => 'Mdm::Note'
-  belongs_to :owner, :class_name => 'Mdm::User', :foreign_key => 'owner_id'
-  has_many :tasks, :dependent => :destroy, :class_name => 'Mdm::Task', :order => 'created_at DESC'
-  has_and_belongs_to_many :users, :join_table => 'workspace_members', :uniq => true, :class_name => 'Mdm::User'
+  has_many :creds, through: :services, class_name: 'Mdm::Cred'
+  has_many :events, class_name: 'Mdm::Event'
+  has_many :hosts, dependent: :destroy, class_name: 'Mdm::Host'
+  has_many :listeners, dependent: :destroy, class_name: 'Mdm::Listener'
+  has_many :notes, class_name: 'Mdm::Note'
+  belongs_to :owner, class_name: 'Mdm::User', foreign_key: 'owner_id'
+  has_many :tasks, dependent: :destroy, class_name: 'Mdm::Task', order: 'created_at DESC'
+  has_and_belongs_to_many :users, join_table: 'workspace_members', uniq: true, class_name: 'Mdm::User'
 
   #
   # Through :hosts
   #
-  has_many :clients, :through => :hosts, :class_name => 'Mdm::Client'
-  has_many :exploited_hosts, :through => :hosts, :class_name => 'Mdm::ExploitedHost'
-  has_many :loots, :through => :hosts, :class_name => 'Mdm::Loot'
-  has_many :vulns, :through => :hosts, :class_name => 'Mdm::Vuln'
-  has_many :services, :through => :hosts, :class_name => 'Mdm::Service', :foreign_key => 'service_id'
-  has_many :sessions, :through => :hosts, :class_name => 'Mdm::Session'
+  has_many :clients, through: :hosts, class_name: 'Mdm::Client'
+  has_many :exploited_hosts, through: :hosts, class_name: 'Mdm::ExploitedHost'
+  has_many :loots, through: :hosts, class_name: 'Mdm::Loot'
+  has_many :vulns, through: :hosts, class_name: 'Mdm::Vuln'
+  has_many :services, through: :hosts, class_name: 'Mdm::Service', foreign_key: 'service_id'
+  has_many :sessions, through: :hosts, class_name: 'Mdm::Session'
+
+  has_many :jobs, dependent: :destroy, class_name: 'Mdm::Job'
+  has_many :resnetscan, dependent: :destroy, class_name: 'Mdm::Resnetscan'
 
   #
   # Validations
   #
 
-  validates :name, :presence => true, :uniqueness => true, :length => {:maximum => 255}
-  validates :description, :length => {:maximum => 4096}
+  validates :name, presence: true, uniqueness: true, length: { maximum: 255 }
+  validates :description, length: { maximum: 4096 }
   validate :boundary_must_be_ip_range
 
   #
@@ -68,7 +71,7 @@ class Mdm::Workspace < ActiveRecord::Base
       ok_range = Rex::Socket::RangeWalker.new(boundary)
       allowed  = true if ok_range.include_range? given_range
     end
-    return allowed
+    allowed
   end
 
   def boundary_must_be_ip_range
@@ -78,8 +81,8 @@ class Mdm::Workspace < ActiveRecord::Base
   def creds
     Mdm::Cred.find(
       :all,
-      :include    => {:service => :host},
-      :conditions => ["hosts.workspace_id = ?", self.id]
+      include:    { service: :host },
+      conditions: ["hosts.workspace_id = ?", id]
     )
   end
 
@@ -110,8 +113,8 @@ class Mdm::Workspace < ActiveRecord::Base
   def host_tags
     Mdm::Tag.find(
       :all,
-      :include    => :hosts,
-      :conditions => ["hosts.workspace_id = ?", self.id]
+      include:    :hosts,
+      conditions: ["hosts.workspace_id = ?", id]
     )
   end
 
@@ -174,11 +177,9 @@ class Mdm::Workspace < ActiveRecord::Base
     Mdm::WebForm.find_by_sql(query)
   end
 
-  def web_unique_forms(addrs=nil)
+  def web_unique_forms(addrs = nil)
     forms = unique_web_forms
-    if addrs
-      forms.reject! { |f| not addrs.include?(f.web_site.service.host.address) }
-    end
+    forms.reject! { |f| addrs.exclude?(f.web_site.service.host.address) } if addrs
     forms
   end
 
@@ -189,15 +190,12 @@ class Mdm::Workspace < ActiveRecord::Base
   end
 
   def valid_ip_or_range?(string)
-    begin
-      Rex::Socket::RangeWalker.new(string)
-    rescue
-      return false
-    end
+    Rex::Socket::RangeWalker.new(string)
+  rescue
+    return false
   end
 
   public
 
   Metasploit::Concern.run(self)
 end
-
