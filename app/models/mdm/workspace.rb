@@ -43,7 +43,7 @@ class Mdm::Workspace < ActiveRecord::Base
   has_many :sessions, through: :hosts, class_name: 'Mdm::Session'
 
   has_many :jobs, dependent: :destroy, class_name: 'Mdm::Job'
-  has_many :resnetscan, dependent: :destroy, class_name: 'Mdm::Resnetscan'
+  has_many :resnetscans, dependent: :destroy, class_name: 'Mdm::Resnetscan'
 
   #
   # Validations

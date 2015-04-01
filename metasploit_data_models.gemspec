@@ -9,13 +9,15 @@ Gem::Specification.new do |s|
       'Samuel Huckins',
       'Luke Imhoff',
       "David 'thelightcosine' Maloney",
-      "Trevor 'burlyscudd' Rosen"
+      "Trevor 'burlyscudd' Rosen",
+      "Maxim Zhukov"
   ]
   s.email       = [
       'shuckins@rapid7.com',
       'luke_imhoff@rapid7.com',
       'dmaloney@rapid7.com',
-      'trevor_rosen@rapid7.com'
+      'trevor_rosen@rapid7.com',
+      'crmaxx@gmail.com'
   ]
   s.homepage    = ""
   s.summary     = %q{Database code for MSF and Metasploit Pro}
@@ -23,7 +25,7 @@ Gem::Specification.new do |s|
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  s.executables   = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   s.require_paths = ['lib']
 
   s.required_ruby_version = '>= 2.1'
@@ -50,6 +52,9 @@ Gem::Specification.new do |s|
 
   # arel-helpers: Useful tools to help construct database queries with ActiveRecord and Arel.
   s.add_runtime_dependency 'arel-helpers'
+
+  # for my project
+  s.add_runtime_dependency 'state_machine', '~> 1.2.0'
 
   if RUBY_PLATFORM =~ /java/
     # markdown formatting for yard
