@@ -1,3 +1,4 @@
+require 'state_machine'
 class Mdm::Resnetscan < ActiveRecord::Base
   belongs_to :workspace,
              class_name: 'Mdm::Workspace',
