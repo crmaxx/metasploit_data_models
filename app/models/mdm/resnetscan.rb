@@ -7,12 +7,16 @@ class Mdm::Resnetscan < ActiveRecord::Base
   validates :status, presence: true
 
   state_machine :status, initial: :new do
-    event :success do
-      transition new: :sussessed
+    event :connect do
+      transition new: :connected
     end
 
-    event :fail do
-      transition new: :failed
+    event :loot do
+      transition connected: :looted
+    end
+
+    event :error do
+      transition new: :error
     end
   end
 
