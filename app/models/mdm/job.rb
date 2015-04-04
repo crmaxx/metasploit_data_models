@@ -1,4 +1,5 @@
 require 'state_machine'
+
 class Mdm::Job < ActiveRecord::Base
   belongs_to :workspace,
              class_name: 'Mdm::Workspace',
