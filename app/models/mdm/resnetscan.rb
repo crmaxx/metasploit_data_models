@@ -4,6 +4,8 @@ class Mdm::Resnetscan < ActiveRecord::Base
   belongs_to :workspace, class_name: 'Mdm::Workspace'
   belongs_to :cred, class_name: 'Mdm::Cred'
 
+  has_many :check_logs, class_name: 'Mdm::CheckLog'
+
   validates :status, presence: true
 
   state_machine :status, initial: :new do
