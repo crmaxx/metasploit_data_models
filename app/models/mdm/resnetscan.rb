@@ -18,6 +18,10 @@ class Mdm::Resnetscan < ActiveRecord::Base
     event :error do
       transition new: :error
     end
+
+    event :stop do
+      transition new: :no_granted
+    end
   end
 
   Metasploit::Concern.run(self)
