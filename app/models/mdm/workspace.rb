@@ -44,6 +44,7 @@ class Mdm::Workspace < ActiveRecord::Base
 
   has_many :jobs, dependent: :destroy, class_name: 'Mdm::Job'
   has_many :resnetscans, dependent: :destroy, class_name: 'Mdm::Resnetscan'
+  has_many :check_logs, dependent: :destroy, class_name: 'Mdm::CheckLog'
 
   #
   # Validations

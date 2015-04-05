@@ -5,6 +5,8 @@ class Mdm::Job < ActiveRecord::Base
              class_name: 'Mdm::Workspace',
              inverse_of: :jobs
 
+  has_many :check_logs, class_name: 'Mdm::CheckLog'
+
   has_and_belongs_to_many :creds, class_name: 'Mdm::Cred'
   has_and_belongs_to_many :resnetscans, class_name: 'Mdm::Resnetscan'
 
