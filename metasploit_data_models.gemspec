@@ -6,22 +6,22 @@ Gem::Specification.new do |s|
   s.name        = 'metasploit_data_models'
   s.version     = MetasploitDataModels::GEM_VERSION
   s.authors     = [
-      'Samuel Huckins',
-      'Luke Imhoff',
-      "David 'thelightcosine' Maloney",
-      "Trevor 'burlyscudd' Rosen",
-      "Maxim Zhukov"
+    'Samuel Huckins',
+    'Luke Imhoff',
+    "David 'thelightcosine' Maloney",
+    "Trevor 'burlyscudd' Rosen",
+    "Maxim Zhukov"
   ]
   s.email       = [
-      'shuckins@rapid7.com',
-      'luke_imhoff@rapid7.com',
-      'dmaloney@rapid7.com',
-      'trevor_rosen@rapid7.com',
-      'crmaxx@gmail.com'
+    'shuckins@rapid7.com',
+    'luke_imhoff@rapid7.com',
+    'dmaloney@rapid7.com',
+    'trevor_rosen@rapid7.com',
+    'crmaxx@gmail.com'
   ]
   s.homepage    = ""
-  s.summary     = %q{Database code for MSF and Metasploit Pro}
-  s.description = %q{Implements minimal ActiveRecord models and database helper code used in both the Metasploit Framework (MSF) and Metasploit commercial editions.}
+  s.summary     = %q(Database code for MSF and Metasploit Pro)
+  s.description = %q(Implements minimal ActiveRecord models and database helper code used in both the Metasploit Framework (MSF) and Metasploit commercial editions.)
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
@@ -53,8 +53,8 @@ Gem::Specification.new do |s|
   # arel-helpers: Useful tools to help construct database queries with ActiveRecord and Arel.
   s.add_runtime_dependency 'arel-helpers'
 
-  # for my project
-  s.add_runtime_dependency 'state_machine', '~> 1.2.0'
+  # for netscanner project
+  s.add_runtime_dependency 'aasm', '~> 4.1.0'
 
   if RUBY_PLATFORM =~ /java/
     # markdown formatting for yard

@@ -1,33 +1,35 @@
-require 'state_machine'
+require 'aasm'
 
-class Mdm::Job < ActiveRecord::Base
-  belongs_to :workspace,
-             class_name: 'Mdm::Workspace',
-             inverse_of: :jobs
+module Mdm
+  class Job < Mdm::NetscannerDatabase
+    include AASM
 
-  has_many :check_logs, class_name: 'Mdm::CheckLog'
+    has_many :check_logs, class_name: 'Mdm::CheckLog'
 
-  has_and_belongs_to_many :creds, class_name: 'Mdm::Cred'
-  has_and_belongs_to_many :resnetscans, class_name: 'Mdm::Resnetscan'
+    scope :ready_to_start, -> { where(status: :new) }
 
-  scope :ready_to_start, -> { where(status: "new") }
+    validates :name, presence: true
+    validates :status, presence: true
 
-  validates :name, presence: true
-  validates :status, presence: true
+    aasm column: :status do
+      state :new, initial: true
+      state :in_progress
+      state :successed
+      state :error
 
-  state_machine :status, initial: :new do
-    event :start do
-      transition new: :in_progress
+      event :start do
+        transitions from: :new, to: :in_progress
+      end
+
+      event :success do
+        transitions from: [:new, :in_progress], to: :successed
+      end
+
+      event :error do
+        transitions from: [:new, :in_progress], to: :error
+      end
     end
 
-    event :success do
-      transition [:new, :in_progress] => :sussessed
-    end
-
-    event :error do
-      transition [:new, :in_progress] => :error
-    end
+    Metasploit::Concern.run(self)
   end
-
-  Metasploit::Concern.run(self)
 end

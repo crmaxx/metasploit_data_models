@@ -1,30 +1,39 @@
-require 'state_machine'
+require 'aasm'
 
-class Mdm::Resnetscan < ActiveRecord::Base
-  belongs_to :workspace, class_name: 'Mdm::Workspace'
-  belongs_to :cred, class_name: 'Mdm::Cred'
+module Mdm
+  class Resnetscan < Mdm::NetscannerDatabase
+    include AASM
 
-  has_many :check_logs, class_name: 'Mdm::CheckLog'
+    belongs_to :cred, class_name: 'Mdm::Cred', foreign_key: :credential_id
 
-  validates :status, presence: true
+    has_many :check_logs, class_name: 'Mdm::CheckLog'
 
-  state_machine :status, initial: :new do
-    event :connect do
-      transition new: :connected
+    validates :status, presence: true
+
+    aasm column: :status do
+      state :new, initial: true
+      state :connected
+      state :looted
+      state :error
+      state :no_granted
+
+      event :connect do
+        transitions from: :new, to: :connected
+      end
+
+      event :loot do
+        transitions from: :connected, to: :looted
+      end
+
+      event :error do
+        transitions from: :new, to: :error
+      end
+
+      event :stop do
+        transitions from: :new, to: :no_granted
+      end
     end
 
-    event :loot do
-      transition connected: :looted
-    end
-
-    event :error do
-      transition new: :error
-    end
-
-    event :stop do
-      transition new: :no_granted
-    end
+    Metasploit::Concern.run(self)
   end
-
-  Metasploit::Concern.run(self)
 end
