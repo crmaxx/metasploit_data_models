@@ -4,6 +4,8 @@ module Mdm
   class Resnetscan < Mdm::NetscannerDatabase
     include AASM
 
+    self.table_name = "hosts"
+
     belongs_to :cred, class_name: 'Mdm::Cred', foreign_key: :credential_id
 
     has_many :check_logs, class_name: 'Mdm::CheckLog'

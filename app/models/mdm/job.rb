@@ -6,6 +6,12 @@ module Mdm
 
     has_many :check_logs, class_name: 'Mdm::CheckLog'
 
+    has_many :credentials_jobs, class_name: 'Mdm::CredentialsJob'
+    has_many :creds, through: :credentials_jobs, class_name: 'Mdm::Cred'
+
+    has_many :jobs_resnetscan, class_name: 'Mdm::JobsResnetscan'
+    has_many :resnetscans, through: :jobs_resnetscan, class_name: 'Mdm::Resnetscan'
+
     scope :ready_to_start, -> { where(status: :new) }
 
     validates :name, presence: true
