@@ -19,47 +19,43 @@ class Mdm::Host < ActiveRecord::Base
   # name for exploits that run code in the programming language's virtual
   # machine.
   ARCHITECTURES = [
-      'armbe',
-      'armle',
-      'cbea',
-      'cbea64',
-      'cmd',
-      'java',
-      'mips',
-      'mipsbe',
-      'mipsle',
-      'php',
-      'ppc',
-      'ppc64',
-      'ruby',
-      'sparc',
-      'tty',
-      # To be used for compatability with 'X86_64'
-      'x64',
-      'x86',
-      'x86_64',
-      '',
-      UNKNOWN_ARCHITECTURE
+    'armbe',
+    'armle',
+    'cbea',
+    'cbea64',
+    'cmd',
+    'java',
+    'mips',
+    'mipsbe',
+    'mipsle',
+    'php',
+    'ppc',
+    'ppc64',
+    'ruby',
+    'sparc',
+    'tty',
+    # To be used for compatability with 'X86_64'
+    'x64',
+    'x86',
+    'x86_64',
+    '',
+    UNKNOWN_ARCHITECTURE
   ]
 
   # Fields searched for the search scope
   SEARCH_FIELDS = [
-      'address::text',
-      'comments',
-      'mac',
-      'name',
-      'os_flavor',
-      'os_name',
-      'os_sp',
-      'purpose'
+    'address::text',
+    'comments',
+    'mac',
+    'name',
+    'os_flavor',
+    'os_name',
+    'os_sp',
+    'purpose'
   ]
 
   # Valid values for {#state}.
-  STATES = [
-      'alive',
-      'down',
-      'unknown'
-  ]
+  STATES = %w(alive down unknown)
 
   #
   # Aggregations
@@ -144,20 +140,20 @@ class Mdm::Host < ActiveRecord::Base
   #   @todo MSP-3065
   #   @return [ActiveRecord::Relation<Mdm::Loot>]
   has_many :loots,
-            -> { order('loots.created_at DESC')},
-            class_name: 'Mdm::Loot',
-            dependent: :destroy,
-            inverse_of: :host
+           -> { order('loots.created_at DESC') },
+           class_name: 'Mdm::Loot',
+           dependent: :destroy,
+           inverse_of: :host
 
   # @!attribute [rw] notes
   #   Notes about the host entered by a user with {Mdm::Note#created_at oldest notes} first.
   #
   #   @return [ActiveRecord::Relation<Mdm::Note>]
   has_many :notes,
-            -> { order('notes.created_at') },
-            class_name: 'Mdm::Note',
-            inverse_of: :host,
-            dependent: :delete_all
+           -> { order('notes.created_at') },
+           class_name: 'Mdm::Note',
+           inverse_of: :host,
+           dependent: :delete_all
 
   # @!attribute [rw] services
   #   The services running on {Mdm::Service#port ports} on the host with services ordered by {Mdm::Service#port port}
@@ -165,10 +161,10 @@ class Mdm::Host < ActiveRecord::Base
   #
   #   @return [ActiveRecord::Relation<Mdm::Service>]
   has_many :services,
-            -> { order('services.port, services.proto') },
-            class_name: 'Mdm::Service',
-            dependent: :destroy,
-            inverse_of: :host
+           -> { order('services.port, services.proto') },
+           class_name: 'Mdm::Service',
+           dependent: :destroy,
+           inverse_of: :host
 
   # @!attribute [rw] sessions
   #   Sessions that are open or previously were open on the host ordered by {Mdm::Session#opened_at when the session was
@@ -176,10 +172,10 @@ class Mdm::Host < ActiveRecord::Base
   #
   #   @return [ActiveRecord::Relation<Mdm::Session]
   has_many :sessions,
-            -> { order('sessions.opened_at') },
-            class_name: 'Mdm::Session',
-            dependent: :destroy,
-            inverse_of: :host
+           -> { order('sessions.opened_at') },
+           class_name: 'Mdm::Session',
+           dependent: :destroy,
+           inverse_of: :host
 
   # @!attribute [rw] vulns
   #   Vulnerabilities found on the host.
@@ -207,7 +203,7 @@ class Mdm::Host < ActiveRecord::Base
   #
   #   @return [ActiveRecord::Relation<Mdm::Tag>]
   #   @see #hosts_tags
-  has_many :tags, :class_name => 'Mdm::Tag', :through => :hosts_tags
+  has_many :tags, class_name: 'Mdm::Tag', through: :hosts_tags
 
   #
   # Through services
@@ -218,7 +214,7 @@ class Mdm::Host < ActiveRecord::Base
   #
   #   @return [ActiveRecord::Relation<Mdm::Cred>]
   #   @see #services
-  has_many :creds, :class_name => 'Mdm::Cred', :through => :services
+  has_many :creds, class_name: 'Mdm::Cred', through: :services
 
   # @!attribute [r] service_notes
   #   {Mdm::Note Notes} about {#services} running on this host.
@@ -235,7 +231,7 @@ class Mdm::Host < ActiveRecord::Base
   #
   #   @return [ActiveRecord::Relation<Mdm::WebSite>]
   #   @see services
-  has_many :web_sites, :class_name => 'Mdm::WebSite', :through => :services
+  has_many :web_sites, class_name: 'Mdm::WebSite', through: :services
 
   # @!attribute [r] module_runs
   #   Records of Metasploit modules being run on/against this {Mdm::Host}
@@ -245,7 +241,6 @@ class Mdm::Host < ActiveRecord::Base
   has_many :module_runs,
            class_name: 'MetasploitDataModels::ModuleRun',
            as: :trackable
-
 
   #
   # through: :task_hosts
@@ -270,7 +265,7 @@ class Mdm::Host < ActiveRecord::Base
   #   @return [ActiveRecord::Relation<Mdm::VulnRef>]
   #   @see #refs
   #   @see #vulns
-  has_many :vuln_refs, :class_name => 'Mdm::VulnRef', :source => :vulns_refs, :through => :vulns
+  has_many :vuln_refs, class_name: 'Mdm::VulnRef', source: :vulns_refs, through: :vulns
 
   #
   # Through vuln_refs
@@ -281,7 +276,7 @@ class Mdm::Host < ActiveRecord::Base
   #
   #   @return [ActiveRecord::Relation<Mdm::Ref>]
   #   @see #vuln_refs
-  has_many :refs, :class_name => 'Mdm::Ref', :through => :vuln_refs
+  has_many :refs, class_name: 'Mdm::Ref', through: :vuln_refs
 
   #
   # Through refs
@@ -291,7 +286,7 @@ class Mdm::Host < ActiveRecord::Base
   #   {Mdm::Module::Ref References for modules} for {Mdm::Ref references for vulnerabilities}.
   #
   #   @return [ActiveRecord::Relation<Mdm::Module::Ref>]
-  has_many :module_refs, :class_name => 'Mdm::Module::Ref', :through => :refs
+  has_many :module_refs, class_name: 'Mdm::Module::Ref', through: :refs
 
   #
   # Through module_refs
@@ -302,10 +297,10 @@ class Mdm::Host < ActiveRecord::Base
   #
   #   @return [ActiveRecord::Relation<Mdm::Module::Detail]
   has_many :module_details,
-           :class_name => 'Mdm::Module::Detail',
-           :source =>:detail,
-           :through => :module_refs,
-           :uniq => true
+           -> { uniq },
+           class_name: 'Mdm::Module::Detail',
+           source: :detail,
+           through: :module_refs
 
   #
   # Attributes
@@ -456,57 +451,57 @@ class Mdm::Host < ActiveRecord::Base
   # @note Must be declared after relations being referenced.
   #
 
-  accepts_nested_attributes_for :services, :reject_if => lambda { |s| s[:port].blank? }, :allow_destroy => true
+  accepts_nested_attributes_for :services, reject_if: ->(s) { s[:port].blank? }, allow_destroy: true
 
   #
   # Validations
   #
 
   validates :address,
-            :exclusion => {
-                :in => [IPAddr.new('127.0.0.1')]
+            exclusion: {
+              in: [IPAddr.new('127.0.0.1')]
             },
-            :ip_format => true,
-            :presence => true,
-            :uniqueness => {
-                :scope => :workspace_id,
-                :unless => :ip_address_invalid?
+            ip_format: true,
+            presence: true,
+            uniqueness: {
+              scope: :workspace_id,
+              unless: :ip_address_invalid?
             }
   validates :arch,
-            :allow_blank => true,
-            :inclusion => {
-                :in => ARCHITECTURES
+            allow_blank: true,
+            inclusion: {
+              in: ARCHITECTURES
             }
   validates :state,
-            :allow_nil => true,
-            :inclusion => {
-                :in => STATES
+            allow_nil: true,
+            inclusion: {
+              in: STATES
             }
-  validates :workspace, :presence => true
+  validates :workspace, presence: true
 
   #
   # Scopes
   #
 
-  scope :alive, -> { where({'hosts.state' => 'alive'}) }
-  scope :flagged, -> { where('notes.critical = true AND notes.seen = false').includes(:notes) }
-  scope :search,
-        lambda { |*args|
-          # @todo replace with AREL
-          terms = SEARCH_FIELDS.collect { |field|
-            "#{self.table_name}.#{field} ILIKE ?"
-          }
-          disjunction = terms.join(' OR ')
-          formatted_parameter = "%#{args[0]}%"
-          parameters = [formatted_parameter] * SEARCH_FIELDS.length
-          conditions = [disjunction] + parameters
-
-          {
-              :conditions => conditions
-          }
-        }
-  scope :tag_search,
-        lambda { |*args| where("tags.name" => args[0]).includes(:tags) }
+  scope :alive, -> { where(state: 'alive') }
+  scope :flagged, lambda {
+    includes(:notes).where(Mdm::Note.arel_table[:critical].eq(true).and(Mdm::Note.arel_table[:seen].eq(false)))
+  }
+  scope :search, lambda { |query|
+    address = Arel::Nodes::NamedFunction.new("CAST", [arel_table[:address].as("TEXT")])
+    where(
+      arel_table[:comments].matches("%#{query}%").
+      or(arel_table[:mac].matches("%#{query}%")).
+      or(arel_table[:name].matches("%#{query}%")).
+      or(arel_table[:os_flavor].matches("%#{query}%")).
+      or(arel_table[:os_name].matches("%#{query}%")).
+      or(arel_table[:os_sp].matches("%#{query}%")).
+      or(arel_table[:purpose].matches("%#{query}%")).
+      or(address.matches("%#{query}%"))
+    )
+  }
+  # @todo replace with AREL
+  scope :tag_search, ->(*args) { where("tags.name" => args[0]).includes(:tags) }
 
   #
   #
@@ -540,9 +535,9 @@ class Mdm::Host < ActiveRecord::Base
   search_with MetasploitDataModels::Search::Operator::Multitext,
               name: :os,
               operator_names: [
-                  :os_name,
-                  :os_flavor,
-                  :os_sp
+                :os_name,
+                :os_flavor,
+                :os_sp
               ]
 
   search_with MetasploitDataModels::Search::Operator::IPAddress,
@@ -566,17 +561,15 @@ class Mdm::Host < ActiveRecord::Base
   #
   # @return [void]
   def ip_address_invalid?
-    begin
-      if address.is_a? IPAddr
-        potential_ip = address.dup
-      else
-        potential_ip = IPAddr.new(address)
-      end
-
-      return true unless potential_ip.ipv4? || potential_ip.ipv6?
-    rescue ArgumentError
-      return true
+    if address.is_a? IPAddr
+      potential_ip = address.dup
+    else
+      potential_ip = IPAddr.new(address)
     end
+
+    return true unless potential_ip.ipv4? || potential_ip.ipv6?
+  rescue ArgumentError
+    return true
   end
 
   # Returns whether this host is a virtual machine.
@@ -584,13 +577,14 @@ class Mdm::Host < ActiveRecord::Base
   # @return [true] unless {#virtual_host} is `nil`.
   # @return [false] otherwise.
   def is_vm?
-    !!self.virtual_host
+    return true unless virtual_host.nil?
+    false
   end
 
   private
 
   def normalize_arch
-    if attribute_present?(:arch) && !ARCHITECTURES.include?(self.arch)
+    if attribute_present?(:arch) && ARCHITECTURES.exclude?(arch)
       self.detected_arch = arch
       self.arch = UNKNOWN_ARCHITECTURE
     end

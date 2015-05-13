@@ -52,4 +52,3 @@ module MetasploitDataModels
     @root
   end
 end
-

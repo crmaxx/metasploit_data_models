@@ -73,18 +73,14 @@ class MetasploitDataModels::Search::Visitor::Where
     value_node = visit value
 
     case value
-      when MetasploitDataModels::IPAddress::CIDR
-        Arel::Nodes::InfixOperation.new(
-            '<<',
-            attribute,
-            value_node
-        )
-      when MetasploitDataModels::IPAddress::Range
-        Arel::Nodes::Between.new(attribute, value_node)
-      when MetasploitDataModels::IPAddress::V4::Single
-        Arel::Nodes::Equality.new(attribute, value_node)
-      else
-        raise TypeError, "Don't know how to handle #{value.class}"
+    when MetasploitDataModels::IPAddress::CIDR
+      Arel::Nodes::InfixOperation.new('<<', attribute, value_node)
+    when MetasploitDataModels::IPAddress::Range
+      Arel::Nodes::Between.new(attribute, value_node)
+    when MetasploitDataModels::IPAddress::V4::Single
+      Arel::Nodes::Equality.new(attribute, value_node)
+    else
+      fail TypeError, "Don't know how to handle #{value.class}"
     end
   end
 
@@ -118,7 +114,7 @@ class MetasploitDataModels::Search::Visitor::Where
   #
   # @return [Arel::Nodes::NamedFunction]
   def cast_to_inet(string)
-    cast_argument = Arel::Nodes::As.new(string, Arel::Nodes::SqlLiteral.new('INET'))
+    cast_argument = Arel::Nodes::As.new(Arel::Nodes::Quoted.new(string), Arel::Nodes::SqlLiteral.new('INET'))
     Arel::Nodes::NamedFunction.new('CAST', [cast_argument])
   end
 

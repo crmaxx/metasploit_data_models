@@ -7,10 +7,10 @@ class Mdm::Service < ActiveRecord::Base
   #
 
   # Valid values for {#proto}.
-  PROTOS = %w{tcp udp}
+  PROTOS = %w(tcp udp)
 
   # Valid values for {#state}.
-  STATES = ['open', 'closed', 'filtered', 'unknown']
+  STATES = %w(open closed filtered unknown)
 
   #
   # Associations
@@ -104,7 +104,7 @@ class Mdm::Service < ActiveRecord::Base
   #   Tasks that touched this service
   #
   #   @return [Array<Mdm::Task>]
-  has_many :tasks, :through => :task_services, :class_name => 'Mdm::Task'
+  has_many :tasks, through: :task_services, class_name: 'Mdm::Task'
 
   #
   # Through :web_sites
@@ -114,19 +114,19 @@ class Mdm::Service < ActiveRecord::Base
   #   Web pages in the {#web_sites} on top of this service.
   #
   #   @return [Array<Mdm::WebPages>]
-  has_many :web_pages, :through => :web_sites, :class_name => 'Mdm::WebPage'
+  has_many :web_pages, through: :web_sites, class_name: 'Mdm::WebPage'
 
   # @!attribute [r] web_forms
   #   Form in the {#web_sites} on top of this service.
   #
   #   @return [Array<Mdm::WebForm>]
-  has_many :web_forms, :through => :web_sites, :class_name => 'Mdm::WebForm'
+  has_many :web_forms, through: :web_sites, class_name: 'Mdm::WebForm'
 
   # @!attribute [r] web_vulns
   #   Vulnerabilities found in the {#web_sites} on top of this service.
   #
   #   @return [Array<Mdm::WebVuln>]
-  has_many :web_vulns, :through => :web_sites, :class_name => 'Mdm::WebVuln'
+  has_many :web_vulns, through: :web_sites, class_name: 'Mdm::WebVuln'
 
   #
   # Attributes
@@ -167,8 +167,8 @@ class Mdm::Service < ActiveRecord::Base
   # Scopes
   #
 
-  scope :inactive, -> { where("services.state != 'open'") }
-  scope :with_state, lambda { |a_state|  where("services.state = ?", a_state)}
+  scope :inactive, -> { where.not(state: 'open') }
+  scope :with_state, ->(a_state) { where(state: a_state) }
   scope :search, lambda { |*args|
     where([
               "services.name ILIKE ? OR " +
@@ -195,14 +195,9 @@ class Mdm::Service < ActiveRecord::Base
   # Search Attributes
   #
 
-  search_attribute :info,
-                   type: :string
-  search_attribute :name,
-                   type: :string
-  search_attribute :proto,
-                   type: {
-                       set: :string
-                   }
+  search_attribute :info, type: :string
+  search_attribute :name, type: :string
+  search_attribute :proto, type: { set: :string }
 
   #
   # Search Withs
@@ -213,10 +208,7 @@ class Mdm::Service < ActiveRecord::Base
   #
   # Validations
   #
-  validates :port,
-            numericality: {
-                only_integer: true
-            }
+  validates :port, numericality: { only_integer: true }
   validates :port,
             uniqueness: {
               message: 'already exists on this host and protocol',
@@ -227,9 +219,8 @@ class Mdm::Service < ActiveRecord::Base
             }
   validates :proto,
             inclusion: {
-                in: PROTOS
+              in: PROTOS
             }
-
 
   #
   # Class Methods

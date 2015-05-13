@@ -26,7 +26,7 @@ class Mdm::HostTag < ActiveRecord::Base
 
   # @see http://stackoverflow.com/a/11694704
   after_destroy :destroy_orphan_tag
-  
+
   #
   # Instance Methods
   #
@@ -42,8 +42,8 @@ class Mdm::HostTag < ActiveRecord::Base
   end
 
   # switch back to public for load hooks
+
   public
 
   Metasploit::Concern.run(self)
 end
-

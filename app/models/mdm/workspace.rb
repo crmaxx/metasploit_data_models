@@ -25,23 +25,23 @@ class Mdm::Workspace < ActiveRecord::Base
   #   `Metasploit::Credential::Core`s gathered from this workspace's {#hosts} and {#services}.
   #
   # Creds gathered from this workspace's {#hosts} and {#services}.
-  has_many :creds, :through => :services, :class_name => 'Mdm::Cred'
+  has_many :creds, through: :services, class_name: 'Mdm::Cred'
 
   # Events that occurred in this workspace.
-  has_many :events, :class_name => 'Mdm::Event'
+  has_many :events, class_name: 'Mdm::Event'
 
   # Hosts in this workspace.
-  has_many :hosts, :dependent => :destroy, :class_name => 'Mdm::Host'
+  has_many :hosts, dependent: :destroy, class_name: 'Mdm::Host'
 
   # Listeners running for this workspace.
-  has_many :listeners, :dependent => :destroy, :class_name => 'Mdm::Listener'
+  has_many :listeners, dependent: :destroy, class_name: 'Mdm::Listener'
 
   # Notes about this workspace.
-  has_many :notes, :class_name => 'Mdm::Note'
+  has_many :notes, class_name: 'Mdm::Note'
 
   # User that owns this workspace and has full permissions within this workspace even if they are not an
   # {Mdm::User#admin administrator}.
-  belongs_to :owner, :class_name => 'Mdm::User', :foreign_key => 'owner_id'
+  belongs_to :owner, class_name: 'Mdm::User', foreign_key: 'owner_id'
 
   # Tasks run inside this workspace.
   has_many :tasks,
@@ -61,13 +61,13 @@ class Mdm::Workspace < ActiveRecord::Base
   #
 
   # Social engineering campaign or browser autopwn clients from {#hosts} in this workspace.
-  has_many :clients, :through => :hosts, :class_name => 'Mdm::Client'
+  has_many :clients, through: :hosts, class_name: 'Mdm::Client'
 
   # Hosts exploited in this workspace.
-  has_many :exploited_hosts, :through => :hosts, :class_name => 'Mdm::ExploitedHost'
+  has_many :exploited_hosts, through: :hosts, class_name: 'Mdm::ExploitedHost'
 
   # Loot gathered from {#hosts} in this workspace.
-  has_many :loots, :through => :hosts, :class_name => 'Mdm::Loot'
+  has_many :loots, through: :hosts, class_name: 'Mdm::Loot'
 
   # Services running on {#hosts} in this workspace.
   has_many :services,
@@ -76,10 +76,10 @@ class Mdm::Workspace < ActiveRecord::Base
            through: :hosts
 
   # Vulnerabilities found on {#hosts} in this workspace.
-  has_many :vulns, :through => :hosts, :class_name => 'Mdm::Vuln'
+  has_many :vulns, through: :hosts, class_name: 'Mdm::Vuln'
 
   # Sessions opened on {#hosts} in this workspace.
-  has_many :sessions, :through => :hosts, :class_name => 'Mdm::Session'
+  has_many :sessions, through: :hosts, class_name: 'Mdm::Session'
 
   #
   # Attributes
@@ -127,8 +127,8 @@ class Mdm::Workspace < ActiveRecord::Base
   # Validations
   #
 
-  validates :name, :presence => true, :uniqueness => true, :length => {:maximum => 255}
-  validates :description, :length => {:maximum => 4096}
+  validates :name, presence: true, uniqueness: true, length: { maximum: 255 }
+  validates :description, length: { maximum: 4096 }
   validate :boundary_must_be_ip_range
 
   #
@@ -154,7 +154,7 @@ class Mdm::Workspace < ActiveRecord::Base
       ok_range = Rex::Socket::RangeWalker.new(boundary)
       allowed  = true if ok_range.include_range? given_range
     end
-    return allowed
+    allowed
   end
 
   # Validates that {#boundary} is {#valid_ip_or_range? a valid IP address or IP address range}.
@@ -170,11 +170,14 @@ class Mdm::Workspace < ActiveRecord::Base
   #
   # @return [ActiveRecord::Relation<Mdm::Cred>]
   def creds
-    Mdm::Cred.find(
-      :all,
-      :include    => {:service => :host},
-      :conditions => ["hosts.workspace_id = ?", self.id]
-    )
+    host = Mdm::Host.arel_table
+    cred = Mdm::Cred.arel_table
+    service = Mdm::Service.arel_table
+
+    service_join_source = cred.join(service, Arel::Nodes::OuterJoin).on(cred[:service_id].eq(service[:id])).join_sources
+    host_join_source = service.join(host, Arel::Nodes::OuterJoin).on(service[:host_id].eq(host[:id])).join_sources
+
+    Mdm::Cred.joins(service_join_source, host_join_source).where(host[:workspace_id].eq(id))
   end
 
   # Returns default {Mdm::Workspace}.
@@ -224,11 +227,14 @@ class Mdm::Workspace < ActiveRecord::Base
   #
   # @return [ActiveRecord::Relation<Mdm::Tag>]
   def host_tags
-    Mdm::Tag.find(
-      :all,
-      :include    => :hosts,
-      :conditions => ["hosts.workspace_id = ?", self.id]
-    )
+    host = Mdm::Host.arel_table
+    tag = Mdm::Tag.arel_table
+    host_tag = Mdm::HostTag.arel_table
+
+    tag_join_source = tag.join(host_tag, Arel::Nodes::OuterJoin).on(host_tag[:tag_id].eq(tag[:id])).join_sources
+    host_tag_join_source = host_tag.join(host, Arel::Nodes::OuterJoin).on(host[:id].eq(host_tag[:host_id])).join_sources
+
+    Mdm::Tag.joins(tag_join_source, host_tag_join_source).where(host[:workspace_id].eq(id))
   end
 
   # Web forms found on {#web_sites}.
@@ -245,7 +251,6 @@ class Mdm::Workspace < ActiveRecord::Base
     EOQ
     Mdm::WebForm.find_by_sql(query)
   end
-
 
   # Web pages  found on {#web_sites}.
   #

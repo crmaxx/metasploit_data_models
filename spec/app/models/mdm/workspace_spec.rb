@@ -19,21 +19,13 @@ RSpec.describe Mdm::Workspace, type: :model do
   context '#destroy' do
     it 'should successfully destroy the object and dependent objects' do
       workspace = FactoryGirl.create(:mdm_workspace)
-      listener = FactoryGirl.create(:mdm_listener, :workspace => workspace)
-      task = FactoryGirl.create(:mdm_task, :workspace => workspace)
+      listener = FactoryGirl.create(:mdm_listener, workspace: workspace)
+      task = FactoryGirl.create(:mdm_task, workspace: workspace)
 
-      expect {
-        workspace.destroy
-      }.to_not raise_error
-      expect {
-        workspace.reload
-      }.to raise_error(ActiveRecord::RecordNotFound)
-      expect {
-        listener.reload
-      }.to raise_error(ActiveRecord::RecordNotFound)
-      expect {
-        task.reload
-      }.to raise_error(ActiveRecord::RecordNotFound)
+      expect { workspace.destroy }.to_not raise_error
+      expect { workspace.reload }.to raise_error(ActiveRecord::RecordNotFound)
+      expect { listener.reload }.to raise_error(ActiveRecord::RecordNotFound)
+      expect { task.reload }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
 
@@ -66,15 +58,15 @@ RSpec.describe Mdm::Workspace, type: :model do
   end
 
   context 'columns' do
-    it { is_expected.to have_db_column(:boundary).of_type(:string).with_options(:limit => 4 * (2 ** 10)) }
-    it { is_expected.to have_db_column(:description).of_type(:string).with_options(:limit => 4 * (2 ** 10)) }
-    it { is_expected.to have_db_column(:limit_to_network).of_type(:boolean).with_options(:default => false, :null => false) }
+    it { is_expected.to have_db_column(:boundary).of_type(:string).with_options(limit: 4 * (2**10)) }
+    it { is_expected.to have_db_column(:description).of_type(:string).with_options(limit: 4 * (2**10)) }
+    it { is_expected.to have_db_column(:limit_to_network).of_type(:boolean).with_options(default: false, null: false) }
     it { is_expected.to have_db_column(:name).of_type(:string) }
     it { is_expected.to have_db_column(:owner_id).of_type(:integer) }
 
     context 'timestamps' do
-      it { is_expected.to have_db_column(:created_at).of_type(:datetime).with_options(:null => false) }
-      it { is_expected.to have_db_column(:updated_at).of_type(:datetime).with_options(:null => false) }
+      it { is_expected.to have_db_column(:created_at).of_type(:datetime).with_options(null: false) }
+      it { is_expected.to have_db_column(:updated_at).of_type(:datetime).with_options(null: false) }
     end
   end
 
@@ -130,7 +122,7 @@ RSpec.describe Mdm::Workspace, type: :model do
           '192.168'
         end
 
-        it 'should record error that boundary must be a valid IP range', :pending => 'https://www.pivotaltracker.com/story/show/43171927' do
+        it 'should record error that boundary must be a valid IP range', pending: 'https://www.pivotaltracker.com/story/show/43171927' do
           expect(workspace).not_to be_valid
           expect(workkspace.errors[:boundary]).to include(error)
         end
@@ -138,11 +130,11 @@ RSpec.describe Mdm::Workspace, type: :model do
     end
 
     context 'description' do
-      it { is_expected.to ensure_length_of(:description).is_at_most(4 * (2 ** 10)) }
+      it { is_expected.to validate_length_of(:description).is_at_most(4 * (2**10)) }
     end
 
     context 'name' do
-      it { is_expected.to ensure_length_of(:name).is_at_most(2**8 - 1) }
+      it { is_expected.to validate_length_of(:name).is_at_most(2**8 - 1) }
       it { is_expected.to validate_presence_of :name }
       it { is_expected.to validate_uniqueness_of :name }
     end
@@ -150,23 +142,23 @@ RSpec.describe Mdm::Workspace, type: :model do
 
   context 'methods' do
     let(:hosts) do
-      FactoryGirl.create_list(:mdm_host, 2, :workspace => workspace)
+      FactoryGirl.create_list(:mdm_host, 2, workspace: workspace)
     end
 
     let(:other_hosts) do
-      FactoryGirl.create_list(:mdm_host, 2, :workspace => other_workspace)
+      FactoryGirl.create_list(:mdm_host, 2, workspace: other_workspace)
     end
 
     let(:other_services) do
       other_hosts.collect do |host|
-        FactoryGirl.create(:mdm_service, :host => host)
+        FactoryGirl.create(:mdm_service, host: host)
       end
     end
 
     let(:other_web_sites) do
-      other_services.collect { |service|
-        FactoryGirl.create(:mdm_web_site, :service => service)
-      }
+      other_services.collect do |service|
+        FactoryGirl.create(:mdm_web_site, service: service)
+      end
     end
 
     let(:other_workspace) do
@@ -175,14 +167,14 @@ RSpec.describe Mdm::Workspace, type: :model do
 
     let(:services) do
       hosts.collect do |host|
-        FactoryGirl.create(:mdm_service, :host => host)
+        FactoryGirl.create(:mdm_service, host: host)
       end
     end
 
     let(:web_sites) do
-      services.collect { |service|
-        FactoryGirl.create(:mdm_web_site, :service => service)
-      }
+      services.collect do |service|
+        FactoryGirl.create(:mdm_web_site, service: service)
+      end
     end
 
     context '#creds' do
@@ -192,17 +184,17 @@ RSpec.describe Mdm::Workspace, type: :model do
 
       let!(:creds) do
         services.collect do |service|
-          FactoryGirl.create(:mdm_cred, :service => service)
+          FactoryGirl.create(:mdm_cred, service: service)
         end
       end
 
       let!(:other_creds) do
         other_services.collect do |service|
-          FactoryGirl.create(:mdm_cred, :service => service)
+          FactoryGirl.create(:mdm_cred, service: service)
         end
       end
 
-      it 'should be an ActiveRecord::Relation', :pending => 'https://www.pivotaltracker.com/story/show/43219917' do
+      it 'should be an ActiveRecord::Relation', pending: 'https://www.pivotaltracker.com/story/show/43219917' do
         should be_a ActiveRecord::Relation
       end
 
@@ -212,11 +204,7 @@ RSpec.describe Mdm::Workspace, type: :model do
 
         expect(found_creds.length).to be > 0
 
-        expect(
-            found_creds.none? { |found_cred|
-              found_cred.service.nil?
-            }
-        ).to eq(true)
+        expect(found_creds.none? { |found_cred| found_cred.service.nil? }).to eq(true)
       end
 
       it 'should return only Mdm::Creds from hosts in workspace' do
@@ -225,9 +213,7 @@ RSpec.describe Mdm::Workspace, type: :model do
         expect(found_creds.length).to eq(creds.length)
 
         expect(
-            found_creds.all? { |cred|
-              cred.service.host.workspace == workspace
-            }
+          found_creds.all? { |cred| cred.service.host.workspace == workspace }
         ).to eq(true)
       end
     end
@@ -236,17 +222,17 @@ RSpec.describe Mdm::Workspace, type: :model do
       context 'with default workspace' do
         before(:each) do
           FactoryGirl.create(
-              :mdm_workspace,
-              :name => default
+            :mdm_workspace,
+            name: default
           )
         end
 
         it 'should not create workspace' do
           workspace = nil
 
-          expect {
+          expect do
             workspace = described_class.default
-          }.to change(Mdm::Workspace, :count).by(0)
+          end.to change(Mdm::Workspace, :count).by(0)
 
           expect(workspace).to be_default
         end
@@ -256,9 +242,9 @@ RSpec.describe Mdm::Workspace, type: :model do
         it 'should create workspace' do
           workspace = nil
 
-          expect {
+          expect do
             workspace = described_class.default
-          }.to change(Mdm::Workspace, :count).by(1)
+          end.to change(Mdm::Workspace, :count).by(1)
 
           expect(workspace).to be_default
         end
@@ -288,9 +274,9 @@ RSpec.describe Mdm::Workspace, type: :model do
         creds = FactoryGirl.create_list(:mdm_cred, 2)
         allow(workspace).to receive(:creds).and_return(creds)
 
-        expect { |block|
+        expect do |block|
           workspace.each_cred(&block)
-        }.to yield_successive_args(*creds)
+        end.to yield_successive_args(*creds)
       end
     end
 
@@ -299,9 +285,9 @@ RSpec.describe Mdm::Workspace, type: :model do
         tags = FactoryGirl.create_list(:mdm_tag, 2)
         expect(workspace).to receive(:host_tags).and_return(tags)
 
-        expect { |block|
+        expect do |block|
           workspace.each_host_tag(&block)
-        }.to yield_successive_args(*tags)
+        end.to yield_successive_args(*tags)
       end
     end
 
@@ -315,17 +301,11 @@ RSpec.describe Mdm::Workspace, type: :model do
       #
 
       let(:other_tags) do
-        FactoryGirl.create_list(
-            :mdm_tag,
-            2
-        )
+        FactoryGirl.create_list(:mdm_tag, 2)
       end
 
       let(:tags) do
-        FactoryGirl.create_list(
-            :mdm_tag,
-            2
-        )
+        FactoryGirl.create_list(:mdm_tag, 2)
       end
 
       #
@@ -336,7 +316,7 @@ RSpec.describe Mdm::Workspace, type: :model do
         host_tags = []
 
         hosts.zip(tags) do |host, tag|
-          host_tag = FactoryGirl.create(:mdm_host_tag, :host => host, :tag => tag)
+          host_tag = FactoryGirl.create(:mdm_host_tag, host: host, tag: tag)
 
           host_tags << host_tag
         end
@@ -348,7 +328,7 @@ RSpec.describe Mdm::Workspace, type: :model do
         host_tags = []
 
         other_hosts.zip(other_tags) do |host, tag|
-          host_tag = FactoryGirl.create(:mdm_host_tag, :host => host, :tag => tag)
+          host_tag = FactoryGirl.create(:mdm_host_tag, host: host, tag: tag)
 
           host_tags << host_tag
         end
@@ -356,7 +336,7 @@ RSpec.describe Mdm::Workspace, type: :model do
         host_tags
       end
 
-      it 'should return an ActiveRecord::Relation', :pending => 'https://www.pivotaltracker.com/story/show/43219917' do
+      it 'should return an ActiveRecord::Relation' do
         should be_a ActiveRecord::Relation
       end
 
@@ -364,11 +344,11 @@ RSpec.describe Mdm::Workspace, type: :model do
         expect(host_tags.length).to eq(tags.length)
 
         expect(
-            host_tags.all? { |tag|
-              tag.hosts.any? { |host|
-                host.workspace == workspace
-              }
-            }
+          host_tags.all? do |tag|
+            tag.hosts.any? do |host|
+              host.workspace == workspace
+            end
+          end
         ).to eq(true)
       end
     end
@@ -404,15 +384,12 @@ RSpec.describe Mdm::Workspace, type: :model do
         end
 
         it 'should not raise error' do
-          expect {
-            normalize
-          }.to_not raise_error
+          expect { normalize }.to_not raise_error
         end
       end
     end
 
     context '#web_forms' do
-
       subject do
         workspace.web_forms
       end
@@ -422,19 +399,19 @@ RSpec.describe Mdm::Workspace, type: :model do
       #
 
       let!(:other_web_forms) do
-        other_web_sites.collect { |web_site|
-          FactoryGirl.create(:web_form, :web_site => web_site)
-        }
+        other_web_sites.collect do |web_site|
+          FactoryGirl.create(:web_form, web_site: web_site)
+        end
       end
 
       let!(:web_forms) do
-        web_sites.collect { |web_site|
-          FactoryGirl.create(:web_form, :web_site => web_site)
-        }
+        web_sites.collect do |web_site|
+          FactoryGirl.create(:web_form, web_site: web_site)
+        end
       end
 
       it 'should return an ActiveRecord:Relation',
-         :pending => 'https://www.pivotaltracker.com/story/show/43219917' do
+         pending: 'https://www.pivotaltracker.com/story/show/43219917' do
         should be_a ActiveRecord::Relation
       end
 
@@ -444,9 +421,9 @@ RSpec.describe Mdm::Workspace, type: :model do
         expect(found_web_forms.length).to eq(web_forms.length)
 
         expect(
-            found_web_forms.all? { |web_form|
-              web_form.web_site.service.host.workspace == workspace
-            }
+          found_web_forms.all? do |web_form|
+            web_form.web_site.service.host.workspace == workspace
+          end
         ).to eq(true)
       end
     end
@@ -466,7 +443,7 @@ RSpec.describe Mdm::Workspace, type: :model do
       end
 
       it 'should return an ActiveRecord:Relation',
-         :pending => 'https://www.pivotaltracker.com/story/show/43219917' do
+         pending: 'https://www.pivotaltracker.com/story/show/43219917' do
         should be_a ActiveRecord::Relation
       end
 
@@ -479,9 +456,9 @@ RSpec.describe Mdm::Workspace, type: :model do
         expect(found_web_sites.length).to eq(web_sites.count)
 
         expect(
-            found_web_sites.all? { |web_site|
-              web_site.service.host.workspace == workspace
-            }
+          found_web_sites.all? do |web_site|
+            web_site.service.host.workspace == workspace
+          end
         ).to eq(true)
       end
     end
@@ -496,19 +473,19 @@ RSpec.describe Mdm::Workspace, type: :model do
       #
 
       let!(:other_web_vulns) do
-        other_web_sites.collect { |web_site|
-          FactoryGirl.create(:mdm_web_vuln, :web_site => web_site)
-        }
+        other_web_sites.collect do |web_site|
+          FactoryGirl.create(:mdm_web_vuln, web_site: web_site)
+        end
       end
 
       let!(:web_vulns) do
-        web_sites.collect { |web_site|
-          FactoryGirl.create(:mdm_web_vuln, :web_site => web_site)
-        }
+        web_sites.collect do |web_site|
+          FactoryGirl.create(:mdm_web_vuln, web_site: web_site)
+        end
       end
 
       it 'should return an ActiveRecord:Relation',
-         :pending => 'https://www.pivotaltracker.com/story/show/43219917' do
+         pending: 'https://www.pivotaltracker.com/story/show/43219917' do
         should be_a ActiveRecord::Relation
       end
 
@@ -520,9 +497,9 @@ RSpec.describe Mdm::Workspace, type: :model do
         expect(found_web_vulns.length).to eq(web_vulns.length)
 
         expect(
-            found_web_vulns.all? { |web_vuln|
-              web_vuln.web_site.service.host.workspace == workspace
-            }
+          found_web_vulns.all? do |web_vuln|
+            web_vuln.web_site.service.host.workspace == workspace
+          end
         ).to eq(true)
       end
     end
@@ -537,7 +514,7 @@ RSpec.describe Mdm::Workspace, type: :model do
       end
 
       it 'should return an ActiveRecord:Relation',
-         :pending => 'https://www.pivotaltracker.com/story/show/43219917' do
+         pending: 'https://www.pivotaltracker.com/story/show/43219917' do
         should be_a ActiveRecord::Relation
       end
 
@@ -545,12 +522,11 @@ RSpec.describe Mdm::Workspace, type: :model do
         web_forms = workspace.web_unique_forms([selected_address])
 
         expect(
-            web_forms.all? { |web_form|
-              expect(web_form.web_site.service.host.address.to_s).to eq(selected_address)
-            }
+          web_forms.all? do |web_form|
+            expect(web_form.web_site.service.host.address.to_s).to eq(selected_address)
+          end
         ).to eq(true)
       end
     end
   end
-
 end

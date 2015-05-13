@@ -11,27 +11,21 @@
 #     end
 #   end
 class Mdm::WebVuln < ActiveRecord::Base
-  
   #
   # CONSTANTS
   #
 
   # A percentage {#confidence} that the vulnerability is real and not a false positive.
-  CONFIDENCE_RANGE = 0 .. 100
+  CONFIDENCE_RANGE = 0..100
 
   # Default value for {#params}
   DEFAULT_PARAMS = []
 
   # Allowed {#method methods}.
-  METHODS = [
-      'GET',
-      # XXX I don't know why PATH is a valid method when it's not an HTTP Method/Verb
-      'PATH',
-      'POST'
-  ]
+  METHODS = %w(GET PATH POST)
 
   # {#risk Risk} is rated on a scale from 0 (least risky) to 5 (most risky).
-  RISK_RANGE = 0 .. 5
+  RISK_RANGE = 0..5
 
   #
   # Associations
@@ -114,34 +108,24 @@ class Mdm::WebVuln < ActiveRecord::Base
   # Validations
   #
 
-  validates :category, :presence => true
+  validates :category, presence: true
   validates :confidence,
-            :inclusion => {
-                :in => CONFIDENCE_RANGE
+            inclusion: {
+              in: CONFIDENCE_RANGE
             }
   validates :method,
-            :inclusion => {
-                :in => METHODS
+            inclusion: {
+              in: METHODS
             }
-  validates :name, :presence => true
-  validates :params, :parameters => true
-  validates :path, :presence => true
-  validates :proof, :presence => true
+  validates :name, presence: true
+  validates :params, parameters: true
+  validates :path, presence: true
+  validates :proof, presence: true
   validates :risk,
-            :inclusion => {
-                :in => RISK_RANGE
+            inclusion: {
+              in: RISK_RANGE
             }
-  validates :web_site, :presence => true
-
-  #
-  # Serializations
-  #
-
-  # @!attribute [rw] params
-  #   Parameters sent as part of request
-  #
-  #   @return [Array<Array(String, String)>] Array of parameter key value pairs
-  serialize :params, MetasploitDataModels::Base64Serializer.new(:default => DEFAULT_PARAMS)
+  validates :web_site, presence: true
 
   #
   # Methods
@@ -151,20 +135,29 @@ class Mdm::WebVuln < ActiveRecord::Base
   #
   # @return [Array<Array<(String, String)>>]
   def params
-    normalize_params(
-        read_attribute(:params)
-    )
+    value = normalize_params(read_attribute(:params))
+    if value.blank?
+      default_params
+    else
+      MetasploitDataModels::Base64Serializer::LOADERS.each do |loader|
+        begin
+          return loader.call(value)
+        rescue
+          next
+        else
+          break
+        end
+      end
+    end
   end
 
   # Set parameters sent as part of request.
   #
   # @param params [Array<Array<(String, String)>>, nil] Array of parameter key value pairs
   # @return [void]
-  def params=(params)
-    write_attribute(
-        :params,
-        normalize_params(params)
-    )
+  def params=(val)
+    value = normalize_params(val)
+    write_attribute(:params, [Marshal.dump(value)].pack('m'))
   end
 
   private
@@ -186,8 +179,8 @@ class Mdm::WebVuln < ActiveRecord::Base
   end
 
   # switch back to public for load hooks
+
   public
 
   Metasploit::Concern.run(self)
 end
-

@@ -11,6 +11,7 @@ module MetasploitDataModels
     MINOR = 0
     # The patch version number, scoped to the {MAJOR} and {MINOR} version numbers.
     PATCH = 1
+    PRERELEASE = 'rails-4.2'
 
     #
     # Module Methods
@@ -26,11 +27,7 @@ module MetasploitDataModels
     #   on any branch other than master.
     def self.full
       version = "#{MAJOR}.#{MINOR}.#{PATCH}"
-
-      if defined? PRERELEASE
-        version = "#{version}-#{PRERELEASE}"
-      end
-
+      version = "#{version}-#{PRERELEASE}" if defined? PRERELEASE
       version
     end
 

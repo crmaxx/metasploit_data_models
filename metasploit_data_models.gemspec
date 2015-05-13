@@ -6,25 +6,25 @@ Gem::Specification.new do |s|
   s.name        = 'metasploit_data_models'
   s.version     = MetasploitDataModels::VERSION
   s.authors     = [
-      'Samuel Huckins',
-      'Luke Imhoff',
-      "David 'thelightcosine' Maloney",
-      "Trevor 'burlyscudd' Rosen"
+    'Samuel Huckins',
+    'Luke Imhoff',
+    "David 'thelightcosine' Maloney",
+    "Trevor 'burlyscudd' Rosen"
   ]
   s.email       = [
-      'shuckins@rapid7.com',
-      'luke_imhoff@rapid7.com',
-      'dmaloney@rapid7.com',
-      'trevor_rosen@rapid7.com'
+    'shuckins@rapid7.com',
+    'luke_imhoff@rapid7.com',
+    'dmaloney@rapid7.com',
+    'trevor_rosen@rapid7.com'
   ]
   s.homepage    = ""
-  s.summary     = %q{Database code for MSF and Metasploit Pro}
-  s.description = %q{Implements minimal ActiveRecord models and database helper code used in both the Metasploit Framework (MSF) and Metasploit commercial editions.}
+  s.summary     = %q(Database code for MSF and Metasploit Pro)
+  s.description = %q(Implements minimal ActiveRecord models and database helper code used in both the Metasploit Framework (MSF) and Metasploit commercial editions.)
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
-  s.require_paths = %w{app/models app/validators lib}
+  s.executables   = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
+  s.require_paths = %w(app/models app/validators lib)
 
   s.required_ruby_version = '>= 2.1'
 
@@ -33,8 +33,6 @@ Gem::Specification.new do |s|
   # documentation
   s.add_development_dependency 'metasploit-yard', '~> 1.0'
   s.add_development_dependency 'yard-activerecord', '~> 0.0.14'
-  # embed ERDs on index, namespace Module and Class<ActiveRecord::Base> pages
-  s.add_development_dependency 'yard-metasploit-erd', '~> 0.1.0'
 
   s.add_development_dependency 'rake'
 
@@ -44,13 +42,11 @@ Gem::Specification.new do |s|
   # debugging
   s.add_development_dependency 'pry'
 
-  rails_version_constraints = ['>= 4.0.9', '< 4.1.0']
+  rails_version_constraints = '>= 4.2.1'
 
-  s.add_runtime_dependency 'activerecord', *rails_version_constraints
-  s.add_runtime_dependency 'activesupport', *rails_version_constraints
-  s.add_runtime_dependency 'metasploit-concern', '~> 1.0'
-  s.add_runtime_dependency 'metasploit-model', '~> 1.0'
-  s.add_runtime_dependency 'railties', *rails_version_constraints
+  s.add_runtime_dependency 'activerecord', rails_version_constraints
+  s.add_runtime_dependency 'activesupport', rails_version_constraints
+  s.add_runtime_dependency 'railties', rails_version_constraints
 
   # os fingerprinting
   s.add_runtime_dependency 'recog', '~> 1.0'

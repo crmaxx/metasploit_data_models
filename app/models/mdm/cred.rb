@@ -11,11 +11,11 @@ class Mdm::Cred < ActiveRecord::Base
 
   # Maps {#ptype_human} to {#ptype}.
   PTYPES = {
-      'read/write password' => 'password_rw',
-      'read-only password' => 'password_ro',
-      'SMB hash' => 'smb_hash',
-      'SSH private key' => 'ssh_key',
-      'SSH public key' => 'ssh_pubkey'
+    'read/write password' => 'password_rw',
+    'read-only password' => 'password_ro',
+    'SMB hash' => 'smb_hash',
+    'SSH private key' => 'ssh_key',
+    'SSH public key' => 'ssh_pubkey'
   }
 
   #
@@ -40,7 +40,7 @@ class Mdm::Cred < ActiveRecord::Base
   #
 
   # Tasks that touched this service
-  has_many :tasks, :through => :task_creds
+  has_many :tasks, through: :task_creds
 
   #
   # Attributes
@@ -107,9 +107,9 @@ class Mdm::Cred < ActiveRecord::Base
   #
   # @return [String, nil]
   def ptype_human
-    humanized = PTYPES.select do |k, v|
+    humanized = PTYPES.select do |_, v|
       v == ptype
-    end.keys[0]
+    end.keys.first
 
     humanized ? humanized : ptype
   end
@@ -119,9 +119,9 @@ class Mdm::Cred < ActiveRecord::Base
   # @return [String] SSH Key Id if ssh-type key and {#proof} matches {KEY_ID_REGEX}.
   # @return [nil] otherwise
   def ssh_key_id
-    return nil unless self.ptype =~ /^ssh_/
-    return nil unless self.proof =~ KEY_ID_REGEX
-    $1.downcase # Can't run into NilClass problems.
+    return unless ptype =~ /^ssh_/
+    return unless proof =~ KEY_ID_REGEX
+    Regexp.last_match[1].downcase # Can't run into NilClass problems.
   end
 
   # Returns whether `other`'s SSH private key or public key matches.
@@ -133,53 +133,53 @@ class Mdm::Cred < ActiveRecord::Base
   # @return [false] if {#ssh_key_id} does not match.
   # @return [true] if {#ssh_key_id} matches.
   def ssh_key_matches?(other_cred)
-    return false unless other_cred.kind_of? self.class
-    return false unless self.ptype == other_cred.ptype
-    case self.ptype
-      when "ssh_key"
-        matches = self.ssh_private_keys
-      when "ssh_pubkey"
-        matches = self.ssh_public_keys
-      else
-        return false
+    return false unless other_cred.is_a? self.class
+    return false unless ptype == other_cred.ptype
+
+    case ptype
+    when "ssh_key"
+      matches = ssh_private_keys
+    when "ssh_pubkey"
+      matches = ssh_public_keys
+    else
+      return false
     end
-    matches.include?(self) and matches.include?(other_cred)
+
+    matches.include?(self) && matches.include?(other_cred)
   end
 
   # Returns all keys with matching key ids, including itself.
   #
   # @return [ActiveRecord::Relation<Mdm::Cred>] ssh_key and ssh_pubkey creds with matching {#ssh_key_id}.
   def ssh_keys
-    (self.ssh_private_keys | self.ssh_public_keys)
+    ssh_private_keys | ssh_public_keys
   end
 
   # Returns all private keys with matching {#ssh_key_id}, including itself.
   #
   # @return [ActiveRecord::Relation<Mdm::Cred>] ssh_key creds with matching {#ssh_key_id}.
   def ssh_private_keys
-    return [] unless self.ssh_key_id
-    matches = self.class.all(
-        :conditions => ["creds.ptype = ? AND creds.proof ILIKE ?", "ssh_key", "%#{self.ssh_key_id}%"]
-    )
-    matches.select {|c| c.workspace == self.workspace}
+    return [] unless ssh_key_id
+
+    matches = Mdm::Cred.where(ptype: "ssh_key").where(Mdm::Cred.arel_table[:proof].matches("%#{ssh_key_id}%"))
+    matches.select { |c| c.workspace == workspace }
   end
 
   # Returns all public keys with matching {#ssh_key_id}, including itself.
   #
   # @return [ActiveRecord::Relation<Mdm::Cred>] ssh_pubkey creds with matching {#ssh_key_id}.
   def ssh_public_keys
-    return [] unless self.ssh_key_id
-    matches = self.class.all(
-        :conditions => ["creds.ptype = ? AND creds.proof ILIKE ?", "ssh_pubkey", "%#{self.ssh_key_id}%"]
-    )
-    matches.select {|c| c.workspace == self.workspace}
+    return [] unless ssh_key_id
+
+    matches = Mdm::Cred.where(ptype: "ssh_pubkey").where(Mdm::Cred.arel_table[:proof].matches("%#{ssh_key_id}%"))
+    matches.select { |c| c.workspace == workspace }
   end
 
   # Returns its workspace
   #
   # @return [Mdm::Workspace]
   def workspace
-    self.service.host.workspace
+    service.host.workspace
   end
 
   private
@@ -188,17 +188,18 @@ class Mdm::Cred < ActiveRecord::Base
   #
   # @return [void]
   def decrement_host_counter_cache
-    Mdm::Host.decrement_counter("cred_count", self.service.host_id)
+    Mdm::Host.decrement_counter("cred_count", service.host_id)
   end
 
   # Increments {Mdm::Host#cred_count}.
   #
   # @return [void]
   def increment_host_counter_cache
-    Mdm::Host.increment_counter("cred_count", self.service.host_id)
+    Mdm::Host.increment_counter("cred_count", service.host_id)
   end
 
   # Switch back to public for load hooks.
+
   public
 
   Metasploit::Concern.run(self)
