@@ -8,27 +8,26 @@ RSpec.describe Mdm::Vuln, type: :model do
   context '#destroy' do
     it 'should successfully destroy the object and dependent objects' do
       vuln = FactoryGirl.create(:mdm_vuln)
-      vuln_attempt = FactoryGirl.create(:mdm_vuln_attempt, :vuln => vuln)
-      vuln_detail = FactoryGirl.create(:mdm_vuln_detail, :vuln => vuln)
-      vuln_ref = FactoryGirl.create(:mdm_vuln_ref, :vuln => vuln)
-      expect {
+      vuln_attempt = FactoryGirl.create(:mdm_vuln_attempt, vuln: vuln)
+      vuln_detail = FactoryGirl.create(:mdm_vuln_detail, vuln: vuln)
+      vuln_ref = FactoryGirl.create(:mdm_vuln_ref, vuln: vuln)
+      expect do
         vuln.destroy
-      }.to_not raise_error
-      expect {
+      end.to_not raise_error
+      expect do
         vuln.reload
-      }.to raise_error(ActiveRecord::RecordNotFound)
-      expect {
+      end.to raise_error(ActiveRecord::RecordNotFound)
+      expect do
         vuln_attempt.reload
-      }.to raise_error(ActiveRecord::RecordNotFound)
-      expect {
+      end.to raise_error(ActiveRecord::RecordNotFound)
+      expect do
         vuln_detail.reload
-      }.to raise_error(ActiveRecord::RecordNotFound)
-      expect {
+      end.to raise_error(ActiveRecord::RecordNotFound)
+      expect do
         vuln_ref.reload
-      }.to raise_error(ActiveRecord::RecordNotFound)
+      end.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
-
 
   context 'associations' do
     it { is_expected.to belong_to(:host).class_name('Mdm::Host') }
@@ -46,44 +45,38 @@ RSpec.describe Mdm::Vuln, type: :model do
 
       context 'with Mdm::Refs' do
         let(:names) do
-          2.times.collect {
-            FactoryGirl.generate :mdm_ref_name
-          }
+          2.times.collect { FactoryGirl.generate :mdm_ref_name }
         end
 
         let!(:refs) do
           names.collect do |name|
-            FactoryGirl.create(:mdm_ref, :name => name)
+            FactoryGirl.create(:mdm_ref, name: name)
           end
         end
 
         context 'with Mdm::VulnRefs' do
           let!(:vuln_refs) do
-            refs.collect { |ref|
-              FactoryGirl.create(:mdm_vuln_ref, :ref => ref, :vuln => vuln)
-            }
+            refs.collect do |ref|
+              FactoryGirl.create(:mdm_vuln_ref, ref: ref, vuln: vuln)
+            end
           end
-          
+
           it 'should be deletable' do
-            expect {
-              vuln.destroy
-            }.not_to raise_error
+            expect { vuln.destroy }.not_to raise_error
           end
-          
+
           context 'with Mdm::Module::Detail' do
             let!(:module_detail) do
-              FactoryGirl.create(
-                  :mdm_module_detail
-              )
+              FactoryGirl.create(:mdm_module_detail)
             end
 
             context 'with Mdm::Module::Refs with same names as Mdm::Refs' do
               let!(:module_refs) do
                 names.each do |name|
                   FactoryGirl.create(
-                      :mdm_module_ref,
-                      :detail => module_detail,
-                      :name => name
+                    :mdm_module_ref,
+                    detail: module_detail,
+                    name: name
                   )
                 end
               end
@@ -131,8 +124,8 @@ RSpec.describe Mdm::Vuln, type: :model do
       it { is_expected.to have_db_column(:service_id).of_type(:integer) }
 
       context 'counter caches' do
-        it { is_expected.to have_db_column(:vuln_attempt_count).of_type(:integer).with_options(:default => 0) }
-        it { is_expected.to have_db_column(:vuln_detail_count).of_type(:integer).with_options(:default => 0) }
+        it { is_expected.to have_db_column(:vuln_attempt_count).of_type(:integer).with_options(default: 0) }
+        it { is_expected.to have_db_column(:vuln_detail_count).of_type(:integer).with_options(default: 0) }
       end
 
       context 'timestamps' do
@@ -186,7 +179,7 @@ RSpec.describe Mdm::Vuln, type: :model do
 
           context 'with Mdm::VulnRef' do
             let!(:vuln_ref) do
-              FactoryGirl.create(:mdm_vuln_ref, :ref => ref, :vuln => vuln)
+              FactoryGirl.create(:mdm_vuln_ref, ref: ref, vuln: vuln)
             end
 
             context 'with query matching Mdm::Ref#name' do

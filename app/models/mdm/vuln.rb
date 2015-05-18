@@ -1,6 +1,5 @@
 # A vulnerability found on a {#host} or {#service}.
 class Mdm::Vuln < ActiveRecord::Base
-  
   #
   # Associations
   #
@@ -67,7 +66,6 @@ class Mdm::Vuln < ActiveRecord::Base
            inverse_of: :vuln,
            dependent: :delete_all
 
-
   #
   # Through :vuln_refs
   #
@@ -76,7 +74,7 @@ class Mdm::Vuln < ActiveRecord::Base
   #   External references to this vulnerability.
   #
   #   @return [ActiveRecord::Relation<Mdm::Ref>]
-  has_many :refs, :class_name => 'Mdm::Ref', :through => :vulns_refs
+  has_many :refs, class_name: 'Mdm::Ref', through: :vulns_refs
 
   #
   #  Through refs
@@ -86,8 +84,7 @@ class Mdm::Vuln < ActiveRecord::Base
   #   References in module that match {Mdm::Ref#name names} in {#refs}.
   #
   #   @return [ActiveRecord::Relation<Mdm::Module::Ref>]
-  has_many :module_refs, :class_name => 'Mdm::Module::Ref', :through => :refs
-
+  has_many :module_refs, class_name: 'Mdm::Module::Ref', through: :refs
 
   # @!attribute [r] module_runs
   #   References to times that a module has been run to exercise this vuln
@@ -106,10 +103,10 @@ class Mdm::Vuln < ActiveRecord::Base
   #
   #   @return [ActiveRecord::Relation<Mdm::Module::Detail>]
   has_many :module_details,
-            -> { uniq },
-            :class_name => 'Mdm::Module::Detail',
-            :source => :detail,
-            :through => :module_refs
+           -> { uniq },
+           class_name: 'Mdm::Module::Detail',
+           source: :detail,
+           through: :module_refs
   #
   # Attributes
   #
@@ -150,16 +147,17 @@ class Mdm::Vuln < ActiveRecord::Base
   #
 
   scope :search, lambda { |query|
-    formatted_query = "%#{query}%"
+    vuln = Mdm::Vuln.arel_table
+    ref = Mdm::Ref.arel_table
+    vuln_ref = Mdm::VulnRef.arel_table
 
-    where(
-        arel_table[:name].matches(formatted_query).or(
-            arel_table[:info].matches(formatted_query)
-        ).or(
-            Mdm::Ref.arel_table[:name].matches(formatted_query)
-        )
-    ).includes(
-        :refs
+    vuln_ref_join_source = vuln.join(vuln_ref, Arel::Nodes::OuterJoin).on(vuln_ref[:vuln_id].eq(vuln[:id])).join_sources
+    ref_join_source = vuln_ref.join(ref, Arel::Nodes::OuterJoin).on(vuln_ref[:ref_id].eq(ref[:id])).join_sources
+
+    joins(vuln_ref_join_source, ref_join_source).where(
+      vuln[:name].matches("%#{query}%").
+      or(vuln[:info].matches("%#{query}%")).
+      or(ref[:name].matches("%#{query}%"))
     )
   }
 
@@ -167,14 +165,14 @@ class Mdm::Vuln < ActiveRecord::Base
   # Validations
   #
 
-  validates :name, :presence => true
-  validates :name, length: {maximum: 255}
+  validates :name, presence: true
+  validates :name, length: { maximum: 255 }
   validates_associated :refs
 
   private
 
   def save_refs
-    refs.each { |ref| ref.save(:validate => false) }
+    refs.each { |ref| ref.save(validate: false) }
   end
 
   public

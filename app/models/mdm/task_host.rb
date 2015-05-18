@@ -33,8 +33,8 @@ class Mdm::TaskHost < ActiveRecord::Base
   #
 
   validates :host_id,
-            :uniqueness => {
-                :scope => :task_id
+            uniqueness: {
+              scope: :task_id
             }
 
   Metasploit::Concern.run(self)

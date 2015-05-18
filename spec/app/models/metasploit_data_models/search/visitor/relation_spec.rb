@@ -1,7 +1,7 @@
 RSpec.describe MetasploitDataModels::Search::Visitor::Relation, type: :model do
   subject(:visitor) do
     described_class.new(
-        :query => query
+        query: query
     )
   end
 
@@ -16,8 +16,8 @@ RSpec.describe MetasploitDataModels::Search::Visitor::Relation, type: :model do
 
   let(:query) do
     Metasploit::Model::Search::Query.new(
-        :formatted => formatted,
-        :klass => klass
+        formatted: formatted,
+        klass: klass
     )
   end
 
@@ -146,7 +146,6 @@ RSpec.describe MetasploitDataModels::Search::Visitor::Relation, type: :model do
       it 'should pass visited to ActiveRecord::Relation#includes' do
         visited = double('Visited')
         allow(where_visitor).to receive(:visit).with(query.tree).and_return(visited)
-
         expect_any_instance_of(ActiveRecord::Relation).to receive(:where).with(visited).and_return(query.klass.scoped)
 
         visit
@@ -710,7 +709,7 @@ RSpec.describe MetasploitDataModels::Search::Visitor::Relation, type: :model do
           end
 
           it_should_behave_like 'MetasploitDataModels::Search::Visitor::Relation#visit matching record',
-                                :attribute => :name
+                                attribute: :name
 
           context 'with os' do
             let(:matching_record_os_flavor) {
@@ -761,13 +760,13 @@ RSpec.describe MetasploitDataModels::Search::Visitor::Relation, type: :model do
           end
 
           it_should_behave_like 'MetasploitDataModels::Search::Visitor::Relation#visit matching record',
-                                :attribute => :os_flavor
+                                attribute: :os_flavor
 
           it_should_behave_like 'MetasploitDataModels::Search::Visitor::Relation#visit matching record',
-                                :attribute => :os_name
+                                attribute: :os_name
 
           it_should_behave_like 'MetasploitDataModels::Search::Visitor::Relation#visit matching record',
-                                :attribute => :os_sp
+                                attribute: :os_sp
 
           it_should_behave_like 'MetasploitDataModels::Search::Visitor::Relation#visit matching record',
                                 association: :services,

@@ -18,4 +18,3 @@ class Mdm::VulnRef < ActiveRecord::Base
 
   Metasploit::Concern.run(self)
 end
-

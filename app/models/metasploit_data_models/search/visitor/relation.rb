@@ -6,11 +6,7 @@ class MetasploitDataModels::Search::Visitor::Relation < Metasploit::Model::Base
 
   # `ActiveRecord::Relation` methods that can compute their argument with a visitor under the
   # {MetasploitDataModels::Search::Visitor} namespace.
-  RELATION_METHODS = [
-      :joins,
-      :includes,
-      :where
-  ]
+  RELATION_METHODS = %i(joins includes where)
 
   #
   # Attributes
@@ -27,9 +23,7 @@ class MetasploitDataModels::Search::Visitor::Relation < Metasploit::Model::Base
   #
 
   validate :valid_query
-
-  validates :query,
-            :presence => true
+  validates :query, presence: true
 
   #
   # Methods
@@ -55,10 +49,10 @@ class MetasploitDataModels::Search::Visitor::Relation < Metasploit::Model::Base
   # @return [Hash{Symbol => #visit}]
   def visitor_by_relation_method
     # Enumerable#each_with_object does not support 3 arity for Hashes so need to unpack pair
-    @visitor_by_relation_method ||= self.class.visitor_class_by_relation_method.each_with_object({}) { |pair, visitor_by_relation_method|
+    @visitor_by_relation_method ||= self.class.visitor_class_by_relation_method.each_with_object({}) do |pair, visitor_by_relation_method|
       relation_method, visitor_class = pair
       visitor_by_relation_method[relation_method] = visitor_class.new
-    }
+    end
   end
 
   # Maps method on `ActiveRecord::Relation` to the `Class` under {MetasploitDataModels::Search::Visitor} whose
@@ -66,12 +60,12 @@ class MetasploitDataModels::Search::Visitor::Relation < Metasploit::Model::Base
   #
   # @return [Hash{Symbol => Class}]
   def self.visitor_class_by_relation_method
-    @relation_method_by_visitor_class ||= RELATION_METHODS.each_with_object({}) { |relation_method, relation_method_by_visitor_class|
+    @relation_method_by_visitor_class ||= RELATION_METHODS.each_with_object({}) do |relation_method, relation_method_by_visitor_class|
       visitor_class_name = "#{parent.name}::#{relation_method.to_s.camelize}"
       visitor_class = visitor_class_name.constantize
 
       relation_method_by_visitor_class[relation_method] = visitor_class
-    }
+    end
   end
 
   private
@@ -80,9 +74,7 @@ class MetasploitDataModels::Search::Visitor::Relation < Metasploit::Model::Base
   #
   # @return [void]
   def valid_query
-    if query and !query.valid?
-      errors.add(:query, :invalid)
-    end
+    errors.add(:query, :invalid) if query && !query.valid?
   end
 
   private
